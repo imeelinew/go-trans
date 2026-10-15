@@ -1,0 +1,18 @@
+{
+  "api_key": "",
+  "resource_id": "volc.seedasr.auc",
+  "language": "",
+  "enable_itn": true,
+  "enable_punc": true,
+  "enable_ddc": false,
+  "enable_speaker_info": false,
+  "vad_segment": false,
+  "poll_interval_seconds": 3,
+  "timeout_seconds": 10800,
+  "chunk_seconds": 1800,
+  "line_width": 42,
+  "max_cue_seconds": 7,
+  "upload_put_url": "",
+  "upload_get_url": "",
+  "tunnel_dns_url": "https://cloudflare-dns.com/dns-query"
+}

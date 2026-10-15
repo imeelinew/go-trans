@@ -3,7 +3,6 @@ module github.com/imeelinew/go-trans
 go 1.26.0
 
 require (
-	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/term v0.47.0
 )

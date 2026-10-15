@@ -2,56 +2,35 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/pelletier/go-toml/v2"
 )
 
-const configTemplate = `# TOML configuration. GO_TRANS_API_KEY overrides api_key.
-api_key = ""
-resource_id = "volc.seedasr.auc"
-# Empty means automatic language detection; e.g. "en-US", "zh-CN", "ja-JP".
-language = ""
-enable_itn = true
-enable_punc = true
-enable_ddc = false
-enable_speaker_info = false
-# Semantic sentence boundaries. Leave false for subtitles.
-vad_segment = false
-poll_interval_seconds = 3
-timeout_seconds = 10800
-# Long videos are processed in chunks (max 18000 seconds).
-chunk_seconds = 1800
-line_width = 42
-max_cue_seconds = 7
-# Local audio is served through a temporary Cloudflare tunnel.
-# Alternatively, PUT each chunk to your own storage; {id} is a random object ID.
-upload_put_url = ""
-upload_get_url = ""
-# Used only if local DNS cannot reach a new tunnel. Empty disables fallback.
-tunnel_dns_url = "https://cloudflare-dns.com/dns-query"
-`
+//go:embed config.example.json
+var configTemplate string
 
 type Config struct {
-	TunnelDNS  string  `toml:"tunnel_dns_url"`
-	APIKey     string  `toml:"api_key"`
-	ResourceID string  `toml:"resource_id"`
-	Language   string  `toml:"language"`
-	ITN        bool    `toml:"enable_itn"`
-	Punc       bool    `toml:"enable_punc"`
-	DDC        bool    `toml:"enable_ddc"`
-	Speaker    bool    `toml:"enable_speaker_info"`
-	VAD        bool    `toml:"vad_segment"`
-	Poll       int     `toml:"poll_interval_seconds"`
-	Timeout    int     `toml:"timeout_seconds"`
-	Chunk      int     `toml:"chunk_seconds"`
-	LineWidth  int     `toml:"line_width"`
-	MaxCue     float64 `toml:"max_cue_seconds"`
-	PutURL     string  `toml:"upload_put_url"`
-	GetURL     string  `toml:"upload_get_url"`
+	TunnelDNS  string  `json:"tunnel_dns_url"`
+	APIKey     string  `json:"api_key"`
+	ResourceID string  `json:"resource_id"`
+	Language   string  `json:"language"`
+	ITN        bool    `json:"enable_itn"`
+	Punc       bool    `json:"enable_punc"`
+	DDC        bool    `json:"enable_ddc"`
+	Speaker    bool    `json:"enable_speaker_info"`
+	VAD        bool    `json:"vad_segment"`
+	Poll       int     `json:"poll_interval_seconds"`
+	Timeout    int     `json:"timeout_seconds"`
+	Chunk      int     `json:"chunk_seconds"`
+	LineWidth  int     `json:"line_width"`
+	MaxCue     float64 `json:"max_cue_seconds"`
+	PutURL     string  `json:"upload_put_url"`
+	GetURL     string  `json:"upload_get_url"`
 }
 
 func defaults() Config {
@@ -63,7 +42,7 @@ func defaultConfigPath() string {
 		home, _ := os.UserHomeDir()
 		base = filepath.Join(home, ".config")
 	}
-	return filepath.Join(base, "go-trans", "config.conf")
+	return filepath.Join(base, "go-trans", "config.json")
 }
 func loadConfig(path string) (Config, error) {
 	c := defaults()
@@ -72,8 +51,13 @@ func loadConfig(path string) (Config, error) {
 		return c, err
 	}
 	if err == nil {
-		if err = toml.NewDecoder(bytes.NewReader(b)).DisallowUnknownFields().Decode(&c); err != nil {
+		decoder := json.NewDecoder(bytes.NewReader(b))
+		decoder.DisallowUnknownFields()
+		if err = decoder.Decode(&c); err != nil {
 			return c, fmt.Errorf("config: %w", err)
+		}
+		if err = decoder.Decode(new(any)); err != io.EOF {
+			return c, fmt.Errorf("config: expected a single JSON object")
 		}
 	}
 	if key := os.Getenv("GO_TRANS_API_KEY"); key != "" {

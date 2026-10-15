@@ -1,7 +1,9 @@
 /go-trans
 /bin/
 /config.conf
+/config.json
 *.local.conf
+*.local.json
 .env
 *.mp3
 *.mp4
