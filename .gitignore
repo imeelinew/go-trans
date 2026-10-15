@@ -1,0 +1,13 @@
+/go-trans
+/bin/
+/config.conf
+*.local.conf
+.env
+*.mp3
+*.mp4
+*.mkv
+*.mov
+*.m4v
+*.srt
+*.go-trans.lock
+.DS_Store

@@ -1,0 +1,6 @@
+.PHONY: build test
+build:
+	go build -trimpath -o bin/go-trans .
+test:
+	go test -race ./...
+	go vet ./...
